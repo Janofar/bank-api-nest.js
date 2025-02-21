@@ -1,5 +1,5 @@
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Account, AccountDocument } from './account.schema';
 import { ClientSession, Model, ObjectId, Types } from 'mongoose';
@@ -42,7 +42,7 @@ export class AccountsService {
     async getAccount(userId : Types.ObjectId){
         const account = await this.accountsRepository.getAccount(userId);
         if (!account) {
-            throw new Error('Account not found');
+            throw new NotFoundException('Account not found');
         }
         return account;
     }
@@ -50,7 +50,7 @@ export class AccountsService {
     async getAccountBalance(userId : Types.ObjectId){
         const account = await this.accountsRepository.getAccount(userId);
         if (!account) {
-            throw new Error('Account not found');
+            throw new NotFoundException('Account not found');
         }
         const { balance } = account;
         return balance

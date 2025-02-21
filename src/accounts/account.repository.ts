@@ -1,5 +1,5 @@
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Account, AccountDocument } from './account.schema';
 import { ClientSession, Model, Types } from 'mongoose';
@@ -34,7 +34,7 @@ export class AccountsRepository {
         const account = await this.accountModel.findOne({ userId: new Types.ObjectId(userId) });
 
         if (!account) {
-            throw new UnauthorizedException('Account not found');
+            throw new NotFoundException('Account not found');
         }
         const newBalance = type === 'Credit' ? account.balance + amount : account.balance - amount;
         account.balance = newBalance;

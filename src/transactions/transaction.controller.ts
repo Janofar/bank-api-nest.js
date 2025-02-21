@@ -1,10 +1,9 @@
 import { Controller, Post, Get, Body, Param, BadRequestException, NotFoundException, UseGuards, Request, HttpException, HttpStatus, Query } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
-import { AccountsService } from 'src/accounts/account.service';
+import { AccountsService } from '../accounts/account.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
-import { TransactionResponse } from './transaction.dto';
 
 
 @Controller('transactions')
@@ -49,8 +48,11 @@ export class TransactionController {
     } catch (err) {
       await session.abortTransaction();
       await session.endSession();
-
-      throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      if (err instanceof HttpException) {
+        throw err;
+      }else{
+        throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
 
   }
@@ -93,8 +95,11 @@ export class TransactionController {
     } catch (err) {
       await session.abortTransaction();
       await session.endSession();
-
-      throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      if (err instanceof HttpException) {
+        throw err;
+      } else {
+        throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -103,11 +108,11 @@ export class TransactionController {
   @UseGuards(AuthGuard('jwt'))
   async getHistory(
     @Request() req,
-    @Query('startDate') startDate: string,
-    @Query('endDate') endDate: string,
-    @Query('type') type: string,
-    @Query('page') page: number,
-    @Query('limit') limit: number,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('type') type?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
   ) {
     const userId = req.user?.userId;
     return await this.transactionService.getUserTransactions(userId, {

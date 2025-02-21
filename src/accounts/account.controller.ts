@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Request, Body, Get } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Body, Get, HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AccountsService } from './account.service';
 
@@ -9,12 +9,24 @@ export class AccountController {
   @Get('balance')
   @UseGuards(AuthGuard('jwt'))
   async getBalance(@Request() req) {
-    const account = await this.accountsService.getAccount(req.user.userId);
-    const { balance, accountNumber } = account;
-
-    return {
-      balance,
-      accountNumber
+    try{
+      const account = await this.accountsService.getAccount(req.user.userId);
+      if(!account){
+        throw new NotFoundException('Account not found');
+      }
+      const { balance, accountNumber } = account;
+  
+      return {
+        balance,
+        accountNumber
+      }
+    }catch(err){
+      if (err instanceof HttpException) {
+        throw err;
+      } else {
+        throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
+    
   }
 }
