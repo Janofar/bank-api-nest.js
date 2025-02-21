@@ -5,6 +5,8 @@ import { TransactionModule } from './transactions/transaction.module';
 import { AccountModule } from './accounts/account.module';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -23,5 +25,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     AccountModule,
     AuthModule
   ],
+  controllers: [AppController],
+  providers: [AppService], 
 })
 export class AppModule {}
