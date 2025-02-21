@@ -4,11 +4,21 @@ import { ConfigModule } from '@nestjs/config';
 import { TransactionModule } from './transactions/transaction.module';
 import { AccountModule } from './accounts/account.module';
 import { AuthModule } from './auth/auth.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/bankDB'),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name: 'default',
+          ttl: 60000, 
+          limit: 10,
+        },
+      ],
+    }),
     TransactionModule,  
     AccountModule,
     AuthModule
