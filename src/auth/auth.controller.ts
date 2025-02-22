@@ -6,7 +6,10 @@ import { AccountsService } from '../accounts/account.service';
 import { Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthDto } from './auth.dto';
+import { ApiBadRequestResponse, ApiInternalServerErrorResponse, ApiOperation, ApiResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import  * as dotenv from 'dotenv';
 
+dotenv.config();
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -18,6 +21,38 @@ export class AuthController {
 
     @Post('login')
     @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    @ApiOperation({ summary: 'User login' })
+    @ApiResponse({
+        status: 200,
+        description: 'User logged in successfully',
+        schema: {
+            example: {
+                token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                userId: '609bda56123456789abcdef0',
+                accountNumber: '1234567890',
+            },
+        },
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Invalid email or password',
+        schema: {
+            example: {
+                statusCode: 401,
+                message: 'Invalid email or password',
+                error: 'Unauthorized',
+            },
+        },
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'Internal server error',
+        schema: {
+            example: {
+                statusCode: 500,
+                message: { error: 'Something went wrong' },
+                error: 'Internal Server Error',
+            },
+        },
+    })
     async login(@Body() AuthDto: AuthDto, @Response() res) {
         try {
             const user = await this.authService.validateUser(AuthDto.email, AuthDto.password);
@@ -35,20 +70,51 @@ export class AuthController {
                 sameSite: 'strict',
                 maxAge: 60 * 60 * 1000,
             });
+            return res.status(200).json({ token, userId: user._id, accountNumber });
 
-            return { token, userId: user._id, accountNumber };
         } catch (error) {
             if (error instanceof HttpException) {
-                 throw error;
+                throw error;
             } else {
                 throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-           
+
         }
     }
 
     @Post('register')
     @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    @ApiOperation({ summary: 'Register a new user' })
+    @ApiResponse({
+        status: 200,
+        description: 'User registered successfully',
+        schema: {
+            example: {
+                message: 'User registered successfully',
+                userId: '609bda56123456789abcdef0',
+            },
+        },
+    })
+    @ApiBadRequestResponse({
+        description: 'Email already in use or validation error',
+        schema: {
+            example: {
+                statusCode: 400,
+                message: 'Email already in use',
+                error: 'Bad Request',
+            },
+        },
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'Internal server error',
+        schema: {
+            example: {
+                statusCode: 500,
+                message: { error: 'Something went wrong' },
+                error: 'Internal Server Error',
+            },
+        },
+    })
     async register(@Body() userDto: UserDto) {
         const session = await this.connection.startSession();
         session.startTransaction();
@@ -81,10 +147,10 @@ export class AuthController {
             await session.endSession();
             if (err instanceof HttpException) {
                 throw err;
-           } else {
-               throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
-           }
-            
+            } else {
+                throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
         }
     }
 

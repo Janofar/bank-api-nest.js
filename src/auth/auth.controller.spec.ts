@@ -59,7 +59,7 @@ describe('AuthController', () => {
 
   describe('Login', () => {
     it('should return a token and account number if credentials are valid', async () => {
-      const mockUser = { _id: '123', email: 'valid@example.com' };
+      const mockUser = { _id: '123', email: 'valid@example.com', password: 'password' };
       const mockToken = 'mocked-jwt-token';
       const mockAccountNumber = '9876543210';
 
@@ -71,9 +71,10 @@ describe('AuthController', () => {
       (accountsService.getAccountNumber as jest.Mock).mockResolvedValue(mockAccountNumber);
 
       const mockResponse = {
-        cookie: jest.fn(),
+        status: jest.fn().mockReturnThis(), 
+        json: jest.fn(), 
+        cookie: jest.fn(), 
       } as any;
-    
       const result = await authController.login(
         { email: 'valid@example.com', password: 'password' },
         mockResponse
@@ -82,13 +83,20 @@ describe('AuthController', () => {
       expect(authService.validateUser).toHaveBeenCalledWith('valid@example.com', 'password');
       expect(authService.generateJwtToken).toHaveBeenCalledWith(mockUser);
       expect(accountsService.getAccountNumber).toHaveBeenCalledWith(mockUser._id);
-      expect(mockResponse.cookie).toHaveBeenCalledWith('access_token', mockToken, expect.any(Object));
-    
-      expect(result).toEqual({
+
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+
+      expect(mockResponse.json).toHaveBeenCalledWith({
         token: mockToken,
         userId: mockUser._id,
         accountNumber: mockAccountNumber,
       });
+
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'access_token',
+        mockToken,
+        expect.any(Object)
+      );
     });
 
     it('should throw UnauthorizedException if credentials are invalid', async () => {
@@ -130,23 +138,23 @@ describe('AuthController', () => {
 
   describe('Register', () => {
     it('should register a new user and return success message', async () => {
-      if(!mockConnection || !mockConnection.startSession){
+      if (!mockConnection || !mockConnection.startSession) {
         throw new Error('Connection is not established')
       }
       const mockSession = await mockConnection.startSession();
       const mockUser = { _id: '123', email: 'newuser@example.com' };
       const mockAccount = { accountNumber: '9876543210' };
-  
+
       (userService.findByEmail as jest.Mock).mockResolvedValue(null);
       (userService.createUser as jest.Mock).mockResolvedValue(mockUser);
       (accountsService.createAccountForUser as jest.Mock).mockResolvedValue(mockAccount);
-  
+
       const result = await authController.register({
         name: 'newuser',
         email: 'newuser@example.com',
         password: 'password',
       });
-  
+
       expect(userService.findByEmail).toHaveBeenCalledWith('newuser@example.com');
       expect(userService.createUser).toHaveBeenCalledWith(
         { name: 'newuser', email: 'newuser@example.com', password: 'password' },
@@ -160,51 +168,51 @@ describe('AuthController', () => {
         userId: '123',
       });
     });
-  
+
     it('should throw BadRequestException if email is already in use', async () => {
-      if(!mockConnection || !mockConnection.startSession){
+      if (!mockConnection || !mockConnection.startSession) {
         throw new Error('Connection is not established')
       }
       const mockSession = await mockConnection.startSession();
       (userService.findByEmail as jest.Mock).mockResolvedValue({ _id: '456', email: 'existing@example.com' });
-  
+
       await expect(
         authController.register({ name: 'existing', email: 'existing@example.com', password: 'password' })
       ).rejects.toThrow(BadRequestException);
-  
+
       expect(userService.findByEmail).toHaveBeenCalledWith('existing@example.com');
       expect(mockSession.abortTransaction).toHaveBeenCalled();
       expect(mockSession.endSession).toHaveBeenCalled();
     });
-  
+
     it('should handle transaction failure and return 500 error', async () => {
-      if(!mockConnection || !mockConnection.startSession){
+      if (!mockConnection || !mockConnection.startSession) {
         throw new Error('Connection is not established')
       }
       const mockSession = await mockConnection.startSession();
       (userService.findByEmail as jest.Mock).mockResolvedValue(null);
       (userService.createUser as jest.Mock).mockRejectedValue(new Error('Database error'));
-  
+
       await expect(
         authController.register({ name: 'erroruser', email: 'erroruser@example.com', password: 'password' })
       ).rejects.toThrow(HttpException);
-  
+
       expect(mockSession.abortTransaction).toHaveBeenCalled();
       expect(mockSession.endSession).toHaveBeenCalled();
     });
-  
+
     it('should handle unexpected errors and return 500 error', async () => {
-      if(!mockConnection || !mockConnection.startSession){
+      if (!mockConnection || !mockConnection.startSession) {
         throw new Error('Connection is not established')
       }
       const mockSession = await mockConnection.startSession();
       (userService.findByEmail as jest.Mock).mockResolvedValue(null);
       (userService.createUser as jest.Mock).mockRejectedValue(new Error('Unexpected error'));
-  
+
       await expect(
         authController.register({ name: 'unexpected', email: 'unexpected@example.com', password: 'password' })
       ).rejects.toThrow(HttpException);
-  
+
       expect(mockSession.abortTransaction).toHaveBeenCalled();
       expect(mockSession.endSession).toHaveBeenCalled();
     });
