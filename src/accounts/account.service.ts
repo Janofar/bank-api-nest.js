@@ -5,6 +5,9 @@ import { Account, AccountDocument } from './account.schema';
 import { ClientSession, Model, ObjectId, Types } from 'mongoose';
 import { UserDocument } from 'src/users/user.schema';
 import { AccountsRepository } from './account.repository';
+import  * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const branchCode = process.env.BRANCH_CODE || 'BR123'
 const bankCode = process.env.BANK_CODE || '1345'

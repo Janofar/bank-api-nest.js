@@ -4,7 +4,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Account, AccountDocument } from './account.schema';
 import { ClientSession, Model, Types } from 'mongoose';
 import { UserDocument } from 'src/users/user.schema';
+import  * as dotenv from 'dotenv';
 
+dotenv.config();
 const branchCode = process.env.BRANCH_CODE
 const bankName = process.env.BANK_NAME
 const bankCode = process.env.BANK_CODE
