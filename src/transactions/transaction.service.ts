@@ -20,7 +20,7 @@ export class TransactionService {
 
     const newBalance = type === 'Credit' ? balance + amount : balance - amount;
 
-    const transaction = this.transactionsRepository.createTransaction({
+    const transaction =await this.transactionsRepository.createTransaction({
       userId,
       amount,
       type,

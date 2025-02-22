@@ -22,8 +22,7 @@ export class TransactionsRepository {
             balanceAfterTransaction: balance,
         });
 
-        await transaction.save({session});
-        return transaction;
+        return await transaction.save({session});
     }
 
     async getUserTransactions(
@@ -36,8 +35,8 @@ export class TransactionsRepository {
           limit = 10,
         }: { startDate?: string; endDate?: string; type?: 'Credit' | 'Debit'; page?: number; limit?: number }
       ) {
-        const filters: any = { userId };
-      
+    
+        const filters: any = { userId : new Types.ObjectId(userId)  };
         if (startDate || endDate) {
           filters.createdAt = {};
           if (startDate) filters.createdAt.$gte = new Date(startDate);

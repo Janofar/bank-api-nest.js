@@ -24,7 +24,7 @@ export class AccountsRepository {
             balance: 0, 
           });
       
-          return account.save({ session });
+          return await account.save({ session });
     }
 
     async getAccount(userId: string | Types.ObjectId): Promise<AccountDocument | null> {
@@ -40,7 +40,7 @@ export class AccountsRepository {
         }
         const newBalance = type === 'Credit' ? account.balance + amount : account.balance - amount;
         account.balance = newBalance;
-        return account.save({session});
+        return await account.save({session});
     }
 }
 
