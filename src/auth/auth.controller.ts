@@ -1,8 +1,8 @@
-import { Controller, Post, Body, UseGuards, Request, Response, BadRequestException, UnauthorizedException, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Response, BadRequestException, UnauthorizedException, UsePipes, ValidationPipe, HttpException, HttpStatus, InternalServerErrorException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UsersService } from 'src/users/user.service';
-import { UserDto } from 'src/users/user.dto';
-import { AccountsService } from 'src/accounts/account.service';
+import { UsersService } from '../users/user.service';
+import { UserDto } from '../users/user.dto';
+import { AccountsService } from '../accounts/account.service';
 import { Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { authDto } from './auth.dto';
@@ -36,15 +36,20 @@ export class AuthController {
                 maxAge: 60 * 60 * 1000,
             });
 
-            return res.status(200).json({ token,userId : user._id,accountNumber });
+            return { token, userId: user._id, accountNumber };
         } catch (error) {
-            throw new UnauthorizedException(error.message || 'Login failed');
+            if (error instanceof HttpException) {
+                 throw error;
+            } else {
+                throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+           
         }
     }
 
     @Post('register')
     @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-    async register(@Body() userDto: UserDto, @Response() res) {
+    async register(@Body() userDto: UserDto) {
         const session = await this.connection.startSession();
         session.startTransaction();
 
@@ -56,27 +61,30 @@ export class AuthController {
 
             const user = await this.authService.register(userDto, session);
             if (!user) {
-                throw new Error('Error in registering user');
+                throw new InternalServerErrorException('Error in registering user');
             }
 
             const account = await this.accountsService.createAccountForUser(user, session);
             if (!account) {
-                throw new Error('Error in creating account');
+                throw new InternalServerErrorException('Error in creating account');
             }
             await session.commitTransaction();
             await session.endSession();
 
-            return res.status(201).json({
+            return {
                 message: 'User registered successfully',
                 userId: user._id
-            });
+            };
 
         } catch (err) {
             await session.abortTransaction();
             await session.endSession();
-
-            console.error('Transaction failed:', err);
-            return res.status(500).json({ message: 'Registration failed', error: err.message });
+            if (err instanceof HttpException) {
+                throw err;
+           } else {
+               throw new HttpException({ error: 'Something went wrong' }, HttpStatus.INTERNAL_SERVER_ERROR);
+           }
+            
         }
     }
 
