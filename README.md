@@ -67,15 +67,41 @@ The **Bank API** is a RESTful API built using **NestJS** and **MongoDB** to mana
 | POST   | `/transactions/debit`     | Withdraw money from an account                   |
 | GET    | `/transactions/history`   | History of transaction based on date or type     |
 
-## Running with Docker
-1. **Build the Docker image:**
-   ```sh
-   docker build -t bank-api .
-   ```
-2. **Run the container:**
-   ```sh
-   docker run -p 3000:3000 --env-file .env bank-api
-   ```
+## 🏃 Running the Application
+
+### **Run in Development Mode**
+```sh
+npm run start:dev
+```
+
+### **Run in Production Mode**
+```sh
+npm run build
+npm run start
+```
+
+
+## 🐳 Running with Docker
+
+### **1️⃣ Build & Run with Docker Compose**
+```sh
+docker-compose up --build -d
+```
+This will:
+- Build the Docker image.
+- Start the container in detached mode (`-d`).
+- Load environment variables from `.env`.
+
+### **2️⃣ Stop the Container**
+```sh
+docker-compose down
+```
+
+### **3️⃣ Run Without Docker Compose** *(Alternative)*
+```sh
+docker build -t bank-api .
+docker run -p 3000:3000 --env-file .env --name bank-api-container bank-api
+```
 
 ## License
 This project is licensed under the **MIT License**.
