@@ -18,7 +18,6 @@ export class TransactionController {
 
   @Post('credit')
   @UseGuards(AuthGuard('jwt'))
-  // @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   @ApiOperation({
     summary: 'Credit an account',
     description: 'Credits a specified amount to the user’s account and creates a transaction record.'
@@ -120,8 +119,6 @@ export class TransactionController {
   }
 
   @Post('debit')
-  @UseGuards(AuthGuard('jwt'))
-  // @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: 'Debit an account',
@@ -240,6 +237,10 @@ export class TransactionController {
 
   @Get('history')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: 'History of transaction',
+    description: 'Fetch the transaction history based on date range or type.'
+  })
   @ApiQuery({
     name: 'startDate',
     required: false,
