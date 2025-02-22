@@ -40,7 +40,11 @@ export class TransactionsRepository {
         if (startDate || endDate) {
           filters.createdAt = {};
           if (startDate) filters.createdAt.$gte = new Date(startDate);
-          if (endDate) filters.createdAt.$lte = new Date(endDate);
+          if (endDate) {
+              const end = new Date(endDate);
+              end.setUTCHours(23, 59, 59, 999); 
+              filters.createdAt = { ...(filters.createdAt || {}), $lte: end };
+          }
         }
       
         if (type) {
