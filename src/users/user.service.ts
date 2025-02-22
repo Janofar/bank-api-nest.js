@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './user.schema';
 import { UsersRepository } from './user.repository';
 import { UserData } from './user.types';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -11,10 +12,6 @@ export class UsersService {
     private readonly usersRepository: UsersRepository ,
     @InjectModel(User.name) private userModel: Model<UserDocument>
 ) {}
-
-  async createUser({...userValues}:UserData,session : any): Promise<UserDocument> {
-    return this.usersRepository.createUser(userValues,session)
-  }
 
   async findById(userId: string): Promise<User | null> {
     return this.usersRepository.findById(userId);
@@ -24,6 +21,11 @@ export class UsersService {
     return this.usersRepository.findByEmail(email)
   }
 
+  async createUser({password,...userValues}:UserData, session: any) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    return this.usersRepository.createUser({...userValues,password : hashedPassword},session);
+  }
+
   async updateUser(userId: string, updateData: Partial<User>): Promise<User | null> {
     return this.usersRepository.updateUser(userId,updateData)
   }
@@ -31,4 +33,5 @@ export class UsersService {
   async deleteUser(userId: string): Promise<any> {
     return this.usersRepository.deleteUser(userId)
   }
+
 }

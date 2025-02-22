@@ -1,9 +1,11 @@
-import { Controller, Post, Get, Body, Param, BadRequestException, NotFoundException, UseGuards, Request, HttpException, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, BadRequestException, NotFoundException, UseGuards, Request, HttpException, HttpStatus, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { AccountsService } from '../accounts/account.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
+import { ApiQuery } from '@nestjs/swagger';
+import { TransactionDto, TransactionHistoryDto } from './transaction.dto';
 
 
 @Controller('transactions')
@@ -16,10 +18,12 @@ export class TransactionController {
 
   @Post('credit')
   @UseGuards(AuthGuard('jwt'))
-  async credit(@Request() req, @Body('amount') amount: number) {
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  async credit(@Request() req, @Body() transactionDto : TransactionDto) {
     const session = await this.connection.startSession();
     session.startTransaction();
     try {
+      const {amount} = transactionDto;
       if (!amount || isNaN(amount) || amount <= 0) {
         throw new BadRequestException('Amount must be a valid number greater than zero.');
       }
@@ -58,10 +62,12 @@ export class TransactionController {
   }
   @Post('debit')
   @UseGuards(AuthGuard('jwt'))
-  async debit(@Request() req, @Body('amount') amount: number) {
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  async debit(@Request() req, @Body() transactionDto :TransactionDto) {
     const session = await this.connection.startSession();
     session.startTransaction();
     try {
+      const {amount} = transactionDto;
       if (!amount || isNaN(amount) || amount <= 0) {
         throw new BadRequestException('Amount must be a valid number greater than zero.');
       }
@@ -106,14 +112,20 @@ export class TransactionController {
 
   @Get('history')
   @UseGuards(AuthGuard('jwt'))
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  @ApiQuery({ type: TransactionHistoryDto }) 
   async getHistory(
     @Request() req,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('type') type?: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query() query: TransactionHistoryDto, 
   ) {
+    const {
+      startDate,
+      endDate,
+      type,
+      page = 1,
+      limit = 10
+    } = query ?? {}; 
+    
     const userId = req.user?.userId;
     return await this.transactionService.getUserTransactions(userId, {
       startDate,

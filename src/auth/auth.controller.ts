@@ -5,7 +5,7 @@ import { UserDto } from '../users/user.dto';
 import { AccountsService } from '../accounts/account.service';
 import { Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
-import { authDto } from './auth.dto';
+import { AuthDto } from './auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -18,9 +18,9 @@ export class AuthController {
 
     @Post('login')
     @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-    async login(@Body() authDto: authDto, @Response() res) {
+    async login(@Body() AuthDto: AuthDto, @Response() res) {
         try {
-            const user = await this.authService.validateUser(authDto.email, authDto.password);
+            const user = await this.authService.validateUser(AuthDto.email, AuthDto.password);
             if (!user) {
                 throw new UnauthorizedException('Invalid email or password');
             }
@@ -59,7 +59,7 @@ export class AuthController {
                 throw new BadRequestException('Email already in use');
             }
 
-            const user = await this.authService.register(userDto, session);
+            const user = await this.userService.createUser(userDto, session);
             if (!user) {
                 throw new InternalServerErrorException('Error in registering user');
             }

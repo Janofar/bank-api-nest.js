@@ -62,7 +62,7 @@ describe('TransactionController', () => {
 
             const result = await controller.credit(
                 { user: mockUser },
-                100
+                {amount : 100}
             );
 
             expect(result).toEqual(mockTransaction);
@@ -76,12 +76,12 @@ describe('TransactionController', () => {
         it('should throw error if account not found', async () => {
             mockAccountsService.getAccount.mockResolvedValue(null);
 
-            await expect(controller.credit({ user: { userId: '123' } }, 100))
+            await expect(controller.credit({ user: { userId: '123' } }, {amount : 100}))
                 .rejects.toThrow(NotFoundException);
         });
 
         it('should throw error if amount is invalid', async () => {
-            await expect(controller.credit({ user: { userId: '123' } }, -50))
+            await expect(controller.credit({ user: { userId: '123' } }, {amount : -50}))
                 .rejects.toThrow('Amount must be a valid number greater than zero');
         });
     });
@@ -98,7 +98,7 @@ describe('TransactionController', () => {
 
             const result = await controller.debit(
                 { user: mockUser },
-                100
+                {amount : 100}
             );
 
             expect(result).toEqual(mockTransaction);
@@ -112,7 +112,7 @@ describe('TransactionController', () => {
         it('should throw error if insufficient balance', async () => {
             mockAccountsService.getAccount.mockResolvedValue({ balance: 50 });
 
-            await expect(controller.debit({ user: { userId: '123' } }, 100))
+            await expect(controller.debit({ user: { userId: '123' } }, {amount : 100}))
             .rejects.toMatchObject({
                 response: { error: 'Insufficient balance' }, 
                 status: 400, 
@@ -127,15 +127,15 @@ describe('TransactionController', () => {
 
             mockTransactionService.getUserTransactions.mockResolvedValue(mockTransactions);
 
-            const result = await controller.getHistory({ user: mockUser });
+            const result = await controller.getHistory({ user: mockUser }, {});
 
             expect(result).toEqual(mockTransactions);
             expect(mockTransactionService.getUserTransactions).toHaveBeenCalledWith('123', {
                 startDate: undefined,
                 endDate: undefined,
                 type: undefined,
-                page: undefined,
-                limit: undefined,
+                page: 1,
+                limit: 10,
             });
         });
     });

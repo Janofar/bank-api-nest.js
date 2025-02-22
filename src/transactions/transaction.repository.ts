@@ -3,7 +3,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, Types } from 'mongoose';
 import { Transaction, TransactionDocument } from './transaction.schema';
-import { TransactionData } from './transaction.dto';
+import { TransactionData } from './transaction.types';
 
 @Injectable()
 export class TransactionsRepository {

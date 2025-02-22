@@ -19,11 +19,11 @@ describe('AuthController', () => {
     authService = {
       validateUser: jest.fn(),
       generateJwtToken: jest.fn(),
-      register: jest.fn(),
     };
 
     userService = {
       findByEmail: jest.fn(),
+      createUser: jest.fn(),
     };
 
     accountsService = {
@@ -138,7 +138,7 @@ describe('AuthController', () => {
       const mockAccount = { accountNumber: '9876543210' };
   
       (userService.findByEmail as jest.Mock).mockResolvedValue(null);
-      (authService.register as jest.Mock).mockResolvedValue(mockUser);
+      (userService.createUser as jest.Mock).mockResolvedValue(mockUser);
       (accountsService.createAccountForUser as jest.Mock).mockResolvedValue(mockAccount);
   
       const result = await authController.register({
@@ -148,7 +148,7 @@ describe('AuthController', () => {
       });
   
       expect(userService.findByEmail).toHaveBeenCalledWith('newuser@example.com');
-      expect(authService.register).toHaveBeenCalledWith(
+      expect(userService.createUser).toHaveBeenCalledWith(
         { name: 'newuser', email: 'newuser@example.com', password: 'password' },
         mockSession
       );
@@ -183,7 +183,7 @@ describe('AuthController', () => {
       }
       const mockSession = await mockConnection.startSession();
       (userService.findByEmail as jest.Mock).mockResolvedValue(null);
-      (authService.register as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (userService.createUser as jest.Mock).mockRejectedValue(new Error('Database error'));
   
       await expect(
         authController.register({ name: 'erroruser', email: 'erroruser@example.com', password: 'password' })
@@ -199,7 +199,7 @@ describe('AuthController', () => {
       }
       const mockSession = await mockConnection.startSession();
       (userService.findByEmail as jest.Mock).mockResolvedValue(null);
-      (authService.register as jest.Mock).mockRejectedValue(new Error('Unexpected error'));
+      (userService.createUser as jest.Mock).mockRejectedValue(new Error('Unexpected error'));
   
       await expect(
         authController.register({ name: 'unexpected', email: 'unexpected@example.com', password: 'password' })

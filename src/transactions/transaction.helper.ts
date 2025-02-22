@@ -1,4 +1,4 @@
-import { TransactionResponse } from "./transaction.dto";
+import { TransactionResponse } from "./transaction.types";
 
 export function mapTransactionData(transaction): TransactionResponse {
     return {

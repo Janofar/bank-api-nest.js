@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
 import { Transaction, TransactionDocument } from './transaction.schema';
-import { TransactionData } from './transaction.dto';
+import { TransactionData } from './transaction.types';
 import { TransactionsRepository } from './transaction.repository';
 import { mapTransactionData } from './transaction.helper';
 

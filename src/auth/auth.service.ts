@@ -24,17 +24,11 @@ export class AuthService {
     }
 
     const { password, ...result } = user;
-    console.log(result,"result")
     return { ...result, _id: user._id as Types.ObjectId };
   }
 
   async generateJwtToken(user: any) {
     const payload = { userId: user._id, email: user.email };
     return this.jwtService.sign(payload)
-  }
-
-  async register({password,...userValues}:UserData, session: any) {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    return this.usersService.createUser({...userValues,password : hashedPassword},session);
   }
 }
