@@ -107,5 +107,5 @@ docker run -p 3000:3000 --env-file .env --name bank-api-container bank-api
 This project is licensed under the **MIT License**.
 
 ## Contact
-For any questions or issues, reach out to **[Your Name]** at [your.email@example.com].
+For any questions or issues, reach out to Janofar Jahan at janofarjahan2000@gmail.com.
 
